@@ -1,0 +1,2 @@
+# rustlearn
+learning rust
