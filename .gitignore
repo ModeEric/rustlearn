@@ -1,0 +1,29 @@
+# Ignore the target directory where compiled files are placed
+/target/
+
+# Ignore Cargo.lock (except for library crates)
+/Cargo.lock
+
+# Ignore backups and temporary files
+*.rs.bk
+*.swp
+*.tmp
+
+# Ignore the Cargo output logs and other cache files
+/.cargo/
+.cargo/
+/docs/
+*.log
+
+# Ignore IDE and editor-specific files
+# IntelliJ
+.idea/
+# VS Code
+.vscode/
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Ignore specific OS files
+.DS_Store
+Thumbs.db
