@@ -4,3 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+big-int = "7.0.0"
+num-bigint = "0.4.6"
+rand = "0.8.5"
+rsa = "0.9.6"
