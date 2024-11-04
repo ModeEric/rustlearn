@@ -26,33 +26,34 @@ fn generate_primes_eratosthenes(n: usize, threshold: usize) -> Vec<usize> {
     returnval
 }
 
-fn efficient_exponentials_mod(m: u32, d: u32, n: u32) -> u32 {
-    let mut result: u32 = m % n;
+fn efficient_exponentials_mod(m: u64, d: u64, n: u64) -> u64 {
+    let mut base: u64 = m % n;
     let mut count = d;
-    while count > 1 {
-        result = ((result as u64 * m as u64) % n as u64) as u32;
-        count -= 1;
+    let mut result=1;
+    while count !=0 {
+        if count & 1 == 1 {
+            result = (result*base) % n
+        }
+        base = (base*base) %n;
+        count >>=1;
     }
     result
 }
 
-fn calculate_efficiency_metrics(p: u32, q: u32, n: u32, e: u32) {
-    const STANDARD_KEY_SIZE: u32 = 2048;
-    const STANDARD_PUBLIC_EXPONENT: u32 = 65537;
-    const MIN_PRIME_SIZE: u32 = 1024;
+fn calculate_efficiency_metrics(p: u64, q: u64, n: u64, e: u64) {
+    const STANDARD_KEY_SIZE: u64 = 2048;
+    const STANDARD_PUBLIC_EXPONENT: u64 = 65537;
+    const MIN_PRIME_SIZE: u64 = 1024;
 
-    // Calculate bit lengths
-    let n_bits = 32 - n.leading_zeros();
-    let p_bits = 32 - p.leading_zeros();
-    let q_bits = 32 - q.leading_zeros();
+    let n_bits = 64 - n.leading_zeros();
+    let p_bits = 64 - p.leading_zeros();
+    let q_bits = 64 - q.leading_zeros();
 
-    // Calculate efficiency metrics
     let key_size_efficiency = (n_bits as f64 / STANDARD_KEY_SIZE as f64) * 100.0;
-    let prime_balance = ((p_bits as i32 - q_bits as i32).abs()) as u32;
+    let prime_balance = ((p_bits as i32 - q_bits as i32).abs()) as u64;
     let prime_size_efficiency = (p_bits.min(q_bits) as f64 / MIN_PRIME_SIZE as f64) * 100.0;
     let public_exp_security = if e > 3 { 100.0 } else { (e as f64 / STANDARD_PUBLIC_EXPONENT as f64) * 100.0 };
 
-    // Calculate overall security score
     let overall_security_score = 
         key_size_efficiency * 0.4 +
         (100.0 - prime_balance as f64) * 0.2 +
@@ -67,7 +68,6 @@ fn calculate_efficiency_metrics(p: u32, q: u32, n: u32, e: u32) {
     println!("Public Exponent Security: {:.4}%", public_exp_security);
     println!("Overall Security Score: {:.2}%", overall_security_score);
     
-    // Print security assessment
     println!("\nSecurity Assessment:");
     println!("-------------------");
     if overall_security_score < 5.0 {
@@ -86,18 +86,23 @@ fn calculate_efficiency_metrics(p: u32, q: u32, n: u32, e: u32) {
     }
 }
 
-fn rsa() {
-    let threshold: usize = 40000;
-    let max: usize = 65000;
+fn main() {
+    // First implementation
+    println!("First run:");
+    let start_custom = Instant::now();
+    
+    // Modified parameters for 16-bit numbers
+    let threshold: usize = 100;      // Reduced threshold
+    let max: usize = 65535;          // Maximum 16-bit unsigned value
     
     let mut rng = thread_rng();
     let vec: Vec<usize> = generate_primes_eratosthenes(max, threshold);
     let primes: Vec<usize> = vec.choose_multiple(&mut rng, 2).cloned().collect();
-    let p: u32 = primes[0] as u32;
-    let q: u32 = primes[1] as u32;
-    let n: u32 = p * q;
-    let t: u32 = (p - 1) * (q - 1);
-    let e: u32 = 3;
+    let p: u64 = primes[0] as u64;
+    let q: u64 = primes[1] as u64;
+    let n: u64 = p * q;
+    let t: u64 = (p - 1) * (q - 1);
+    let e: u64 = 17;  // Smaller public exponent for faster computation
     let mut d = 0;
     let mut curr = 0;
     for i in 1..t {
@@ -110,61 +115,65 @@ fn rsa() {
     println!("Custom RSA Parameters:");
     println!("p={}, q={}", p, q);
     println!("n={}", n);
-    println!("Size of n in bits: {}", 32 - n.leading_zeros());
+    println!("Size of n in bits: {}", 64 - n.leading_zeros());
     
     let message = "Secret message";
-    let m: u32 = message.bytes().next().unwrap() as u32;
+    let m: u64 = message.bytes().next().unwrap() as u64;
     println!("Original message (first byte): {}", m);
     println!("Public key: ({}, {})", n, e);
 
-    let m_send: u32 = efficient_exponentials_mod(m, e, n);
+    let m_send: u64 = efficient_exponentials_mod(m, e, n);
     println!("Sending encrypted message: {}", m_send);
 
-    let m_d: u32 = efficient_exponentials_mod(m_send, d, n);
+    let m_d: u64 = efficient_exponentials_mod(m_send, d, n);
     println!("Decoded message: {}", m_d);
 
-    // Calculate and display efficiency metrics
     calculate_efficiency_metrics(p, q, n, e);
-}
-
-fn main() {
-    let start_custom = Instant::now();
-    rsa();
+    
     let duration_custom = start_custom.elapsed();
     println!("\nPerformance Metrics:");
     println!("------------------");
-    println!("Custom RSA implementation took: {:?}", duration_custom);
+    println!("Implementation took: {:?}", duration_custom);
 
+    // Second run with different random primes
     println!("\n-----------------------------------\n");
+    println!("Second run:");
+    let start_custom2 = Instant::now();
+    
+    let primes2: Vec<usize> = vec.choose_multiple(&mut rng, 2).cloned().collect();
+    let p2: u64 = primes2[0] as u64;
+    let q2: u64 = primes2[1] as u64;
+    let n2: u64 = p2 * q2;
+    let t2: u64 = (p2 - 1) * (q2 - 1);
+    let mut d2 = 0;
+    let mut curr2 = 0;
+    for i in 1..t2 {
+        curr2 = (curr2 + e) % t2;
+        if curr2 == 1 {
+            d2 = i;
+            break;
+        }
+    }
+    
+    println!("Custom RSA Parameters:");
+    println!("p={}, q={}", p2, q2);
+    println!("n={}", n2);
+    println!("Size of n in bits: {}", 64 - n2.leading_zeros());
+    
+    let m2: u64 = message.bytes().next().unwrap() as u64;
+    println!("Original message (first byte): {}", m2);
+    println!("Public key: ({}, {})", n2, e);
 
-    use rsa::{RsaPrivateKey, RsaPublicKey};
-    use rsa::pkcs1v15::Pkcs1v15Encrypt;
-    use rand::rngs::OsRng;
+    let m_send2: u64 = efficient_exponentials_mod(m2, e, n2);
+    println!("Sending encrypted message: {}", m_send2);
 
-    let mut rng = OsRng;
+    let m_d2: u64 = efficient_exponentials_mod(m_send2, d2, n2);
+    println!("Decoded message: {}", m_d2);
 
-    let start_standard_keygen = Instant::now();
-    let bits = 2048;
-    let private_key = RsaPrivateKey::new(&mut rng, bits).expect("Failed to generate a key");
-    let public_key = RsaPublicKey::from(&private_key);
-    let duration_standard_keygen = start_standard_keygen.elapsed();
-
-    let data = b"Secret message";
-    let start_standard_encryption = Instant::now();
-    let enc_data = public_key
-        .encrypt(&mut rng, Pkcs1v15Encrypt, &data[..])
-        .expect("Failed to encrypt");
-    let duration_standard_encryption = start_standard_encryption.elapsed();
-
-    let start_standard_decryption = Instant::now();
-    let dec_data = private_key
-        .decrypt(Pkcs1v15Encrypt, &enc_data)
-        .expect("Failed to decrypt");
-    let duration_standard_decryption = start_standard_decryption.elapsed();
-
-    println!("Standard RSA implementation:");
-    println!("Key generation took: {:?}", duration_standard_keygen);
-    println!("Encryption took: {:?}", duration_standard_encryption);
-    println!("Decryption took: {:?}", duration_standard_decryption);
-    println!("Decrypted message: {}", String::from_utf8(dec_data).unwrap());
+    calculate_efficiency_metrics(p2, q2, n2, e);
+    
+    let duration_custom2 = start_custom2.elapsed();
+    println!("\nPerformance Metrics:");
+    println!("------------------");
+    println!("Implementation took: {:?}", duration_custom2);
 }
