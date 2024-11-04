@@ -16,3 +16,4 @@ Implements homomorphic encryption or a simpler encrypted computation method like
 Supports privacy-preserving analytics operations such as sums, averages, and other basic stats on encrypted data.
 Integrates with a higher-level language like Python for usability, making it accessible to data scientists who need secure analytics.
 Maintains high performance and low latency to make encrypted computations as efficient as possible.
+Just Brakerski-Fan-Vercauteren (BFV) for now

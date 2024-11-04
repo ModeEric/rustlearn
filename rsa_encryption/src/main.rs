@@ -86,14 +86,39 @@ fn calculate_efficiency_metrics(p: u64, q: u64, n: u64, e: u64) {
     }
 }
 
+fn modular_inverse(a: u64, n: u64) -> Option<u64> {
+    let (mut t, mut new_t) = (0i64, 1i64);
+    let (mut r, mut new_r) = (n as i64, a as i64);
+
+    while new_r != 0 {
+        let quotient = r / new_r;
+        let temp_t = t - quotient * new_t;
+        t = new_t;
+        new_t = temp_t;
+
+        let temp_r = r - quotient * new_r;
+        r = new_r;
+        new_r = temp_r;
+    }
+
+    if r > 1 {
+        return None;
+    }
+    if t < 0 {
+        t += n as i64;
+    }
+
+    Some(t as u64)
+}
+
 fn main() {
     // First implementation
     println!("First run:");
     let start_custom = Instant::now();
     
     // Modified parameters for 16-bit numbers
-    let threshold: usize = 100;      // Reduced threshold
-    let max: usize = 65535;          // Maximum 16-bit unsigned value
+    let threshold: usize = 10000;      // Reduced threshold
+    let max: usize = 2_usize.pow(16);          // Maximum 16-bit unsigned value
     
     let mut rng = thread_rng();
     let vec: Vec<usize> = generate_primes_eratosthenes(max, threshold);
@@ -102,16 +127,8 @@ fn main() {
     let q: u64 = primes[1] as u64;
     let n: u64 = p * q;
     let t: u64 = (p - 1) * (q - 1);
-    let e: u64 = 17;  // Smaller public exponent for faster computation
-    let mut d = 0;
-    let mut curr = 0;
-    for i in 1..t {
-        curr = (curr + e) % t;
-        if curr == 1 {
-            d = i;
-            break;
-        }
-    }
+    let e: u64 = 2_u64.pow(8)+1;  // Smaller public exponent for faster computation
+    let mut d = modular_inverse(e,t).unwrap();
     println!("Custom RSA Parameters:");
     println!("p={}, q={}", p, q);
     println!("n={}", n);
