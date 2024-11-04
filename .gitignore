@@ -1,8 +1,8 @@
-# Ignore the target directory where compiled files are placed
-/target/
+# Ignore all target directories where compiled files are placed
+target/
 
-# Ignore Cargo.lock (except for library crates)
-/Cargo.lock
+# Ignore all Cargo.lock files (except for library crates)
+Cargo.lock
 
 # Ignore backups and temporary files
 *.rs.bk
@@ -12,7 +12,7 @@
 # Ignore the Cargo output logs and other cache files
 /.cargo/
 .cargo/
-/docs/
+docs/
 *.log
 
 # Ignore IDE and editor-specific files
